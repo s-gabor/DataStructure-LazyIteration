@@ -1,21 +1,13 @@
 # main.py
 
 import constants
-import csv
-from collections import namedtuple
+import utils
+from itertools import islice
 
 
-def read_file(fname):
-    with open(fname, 'r') as f:
-        reader = csv.reader(f, delimiter=',', quotechar='"')
-        yield from reader
-
-
-def create_nt(fname):
-    reader = read_file(fname)
-    header_fields = next(reader)
-    nt = namedtuple('Data', header_fields)
-    for row in reader:
-        yield nt(*row)
-
+for fname, data_types in zip(constants.fnames, constants.data_types):
+    print()
+    data = utils.create_nt(fname, data_types)
+    for nt in islice(data, 3):
+        print(nt)
 
