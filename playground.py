@@ -82,3 +82,8 @@ from datetime import datetime
 #     data = utils.create_nt(fname, data_types)
 #     for nt in islice(data, 3):
 #         print(nt)
+
+
+# create date parser
+def parse_date(value):
+    return datetime.strptime(value, constants.date_format)
