@@ -6,6 +6,7 @@ import utils
 from itertools import islice
 from collections import namedtuple
 from datetime import datetime
+from itertools import chain
 
 
 # # extract the first few lines of data from the file to determine the structure
@@ -84,6 +85,37 @@ from datetime import datetime
 #         print(nt)
 
 
-# create date parser
-def parse_date(value):
-    return datetime.strptime(value, constants.date_format)
+# # create date parser
+# def parse_date(value, *, date_format='%Y-%m-%dT%H:%M:%SZ'):
+#     return datetime.strptime(value, date_format)
+
+
+def create_extended_namedtuple(fnames, field_parsers):
+    all_header_fields = []
+    for fname in fnames:
+        reader = utils.read_file(fname, include_header=True)
+        all_header_fields.extend(next(reader))
+    parsers = [parser for parsers in field_parsers for parser in parsers]
+    unique_header_fields = [header for header, parser in zip(all_header_fields, parsers) if parser is True]
+    return namedtuple('CombinedData', unique_header_fields)
+
+
+# nt = create_extended_namedtuple(constants.fnames, constants.field_parsers)
+# print(nt)
+
+
+# iterate through multiple files at the same time
+def iter_combined_files(fnames, class_names, data_types, field_parsers):
+    nt = create_extended_namedtuple(constants.fnames, constants.field_parsers)
+    # parsers = chain(*field_parsers)
+    parsers = [parser for parsers in field_parsers for parser in parsers]
+    readers = (utils.read_file(fname) for fname in fnames)
+    for fields in zip(*readers):
+        fields_iterator = chain(*fields)
+        unique_fields = [field for field, parser in zip(list(fields_iterator), parsers) if parser is True]
+        yield nt(*unique_fields)
+
+
+r = iter_combined_files(constants.fnames, constants.class_names, constants.data_types, constants.field_parsers)
+for line in islice(r, 5):
+    print(line)

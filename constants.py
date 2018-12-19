@@ -26,3 +26,12 @@ employment_class_name = 'Employment'
 update_status_class_name = 'UpdateStatus'
 vehicles_class_name = 'Vehicle'
 class_names = (personal_class_name, employment_class_name, update_status_class_name, vehicles_class_name)
+
+
+# Unique fields
+personal_fields = (True, True, True, True, True)
+employment_fields = (True, True, True, False)
+update_status_fields = (False, True, True)
+vehicle_fields = (False, True, True, True)
+field_parsers = (personal_fields, employment_fields, update_status_fields, vehicle_fields)
+# unique_fields = [value for field in fields for value in field if value]

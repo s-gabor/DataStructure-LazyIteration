@@ -1,14 +1,17 @@
 # utils.py
 
 import csv
+import constants
 from collections import namedtuple
 from datetime import datetime
-import constants
+from itertools import chain
 
 
-def read_file(fname, *, delimiter=',', quotechar='"'):
+def read_file(fname, *, delimiter=',', quotechar='"', include_header=False):
     with open(fname, 'r') as f:
         reader = csv.reader(f, delimiter=delimiter, quotechar=quotechar)
+        if not include_header:
+            next(reader)
         yield from reader
 
 
@@ -17,14 +20,44 @@ def parse_row(data_types, row):
     return parsed_row
 
 
-def create_nt(fname, class_name, data_types):
+def extract_field_names(fname):
+    return next(read_file(fname, include_header=True))
+
+
+def create_namedtuple(fname, class_name):
+    header_fields = extract_field_names(fname)
+    return namedtuple(class_name, header_fields)
+
+
+def iter_file(fname, class_name, data_types):
     reader = read_file(fname)
-    header_fields = next(reader)
-    nt = namedtuple(class_name, header_fields)
+    nt = create_namedtuple(fname, class_name)
     for row in reader:
         parsed_row = parse_row(data_types, row)
         yield nt(*parsed_row)
 
 
-def parse_date(value):
-    return datetime.strptime(value, constants.date_format)
+def parse_date(value, *, date_format='%Y-%m-%dT%H:%M:%SZ'):
+    return datetime.strptime(value, date_format)
+
+
+def create_extended_namedtuple(fnames, field_parsers):
+    all_header_fields = []
+    for fname in fnames:
+        reader = read_file(fname, include_header=True)
+        all_header_fields.extend(next(reader))
+    parsers = [parser for parsers in field_parsers for parser in parsers]
+    unique_header_fields = [header for header, parser in zip(all_header_fields, parsers) if parser is True]
+    return namedtuple('CombinedData', unique_header_fields)
+
+
+def iter_combined_files(fnames, class_names, data_types, field_parsers):
+    nt = create_extended_namedtuple(constants.fnames, constants.field_parsers)
+    # parsers = chain(*field_parsers)
+    parsers = [parser for parsers in field_parsers for parser in parsers]
+    readers = (read_file(fname) for fname in fnames)
+    for fields in zip(*readers):
+        fields_iterator = chain(*fields)
+        unique_fields = [field for field, parser in zip(list(fields_iterator), parsers) if parser is True]
+        yield nt(*unique_fields)
+
