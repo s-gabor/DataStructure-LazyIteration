@@ -11,6 +11,6 @@ from itertools import islice
 #     for nt in islice(data, 3):
 #         print(nt)
 
-ext_nt = utils.iter_combined_files(constants.fnames, constants.class_names, constants.data_types, constants.field_parsers)
+ext_nt = utils.iter_combined_files(constants.fnames, constants.data_types, constants.field_parsers)
 for rows in islice(ext_nt, 7):
     print(list(rows))

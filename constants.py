@@ -11,7 +11,7 @@ fname_vehicles = 'data_files/vehicles.csv'
 fnames = [fname_personal, fname_employment, fname_update_status, fname_vehicles]
 
 
-# Parsers
+# Data Types
 date_format = '%Y-%m-%dT%H:%M:%SZ'
 data_type_personal = (str, str, str, str, str)
 data_type_employment = (str, str, str, str)

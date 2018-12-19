@@ -41,23 +41,24 @@ def parse_date(value, *, date_format='%Y-%m-%dT%H:%M:%SZ'):
     return datetime.strptime(value, date_format)
 
 
-def create_extended_namedtuple(fnames, field_parsers):
+def create_extended_namedtuple(fnames, parsers):
     all_header_fields = []
     for fname in fnames:
         reader = read_file(fname, include_header=True)
         all_header_fields.extend(next(reader))
-    parsers = [parser for parsers in field_parsers for parser in parsers]
-    unique_header_fields = [header for header, parser in zip(all_header_fields, parsers) if parser is True]
+    unique_header_fields = (header for header, parser in zip(all_header_fields, parsers) if parser is True)
     return namedtuple('CombinedData', unique_header_fields)
 
 
-def iter_combined_files(fnames, class_names, data_types, field_parsers):
-    nt = create_extended_namedtuple(constants.fnames, constants.field_parsers)
-    # parsers = chain(*field_parsers)
-    parsers = [parser for parsers in field_parsers for parser in parsers]
+def iter_combined_files(fnames, data_types, field_parsers):
+    all_parsers = list(chain(*field_parsers))
+    all_data_types = list(chain(*data_types))
+    nt = create_extended_namedtuple(constants.fnames, all_parsers)
     readers = (read_file(fname) for fname in fnames)
     for fields in zip(*readers):
         fields_iterator = chain(*fields)
-        unique_fields = [field for field, parser in zip(list(fields_iterator), parsers) if parser is True]
+        unique_fields = (data_type(field) for data_type, field, parser in
+                         zip(all_data_types, fields_iterator, all_parsers)
+                         if parser is True)
         yield nt(*unique_fields)
 
