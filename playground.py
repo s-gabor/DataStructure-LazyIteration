@@ -110,7 +110,15 @@ def iter_combined_files(fnames, class_names, data_types, field_parsers):
         fields_iterator = chain(*fields)
         unique_fields = [field for field, parser in zip(list(fields_iterator), parsers) if parser is True]
         yield nt(*unique_fields)
-r = iter_combined_files(constants.fnames, constants.class_names, constants.data_types, constants.field_parsers)
-for line in islice(r, 5):
-    print(line)
+# r = iter_combined_files(constants.fnames, constants.class_names, constants.data_types, constants.field_parsers)
+# for line in islice(r, 5):
+#     print(line)
 
+
+def filter_data():
+    nt_iterator = iter_combined_files(constants.fnames, constants.class_names, constants.data_types, constants.field_parsers)
+    for record in islice(nt_iterator, 5):
+        print(record.last_updated,type(record.last_updated), datetime.now())
+        print(record)
+        print(datetime.strptime('2017-01-01', '%Y-%m-%d') < datetime.now())
+filter_data()
